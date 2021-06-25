@@ -1,12 +1,37 @@
-import 'dart:ui' as ui;
+import 'package:flame/flame.dart';
+import 'package:flame/util.dart';
+import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'bgm.dart';
+import 'gameEngine.dart';
 
-double screenWidth;
-double screenHeight;
+enum View {
+  home,
+  playing,
+  lost,
+  help,
+  credits
+} 
 
-void main() {
-  // Convert from physical pixels to Flutter's logical pixels.
-  screenWidth = ui.window.physicalSize.width / ui.window.devicePixelRatio;
-  screenHeight = ui.window.physicalSize.height / ui.window.devicePixelRatio;
-  print(screenWidth);
-  print(screenHeight);
+void main() async {
+  Util flameUtil = Util();
+  await flameUtil.fullScreen();
+  await flameUtil.setOrientation(DeviceOrientation.portraitUp);
+
+  SharedPreferences storage = await SharedPreferences.getInstance();
+  await Flame.images.loadAll(<String>[]);
+  await Flame.audio.loadAll(<String>[]);
+
+  Flame.audio.disableLog();
+  await BGM.preload();  
+  GameEngine game = GameEngine();
+  runApp(game.widget);
+
+  TapGestureRecognizer tapper = TapGestureRecognizer();
+  tapper.onTapDown = game.onTapDown;
+  flameUtil.addGestureRecognizer(tapper);
+  WidgetsBinding.instance.addObserver(BGMHandler());
+  
 }
